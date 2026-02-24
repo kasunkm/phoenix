@@ -1,0 +1,21 @@
+{
+  "name": "phoenix-education-institute",
+  "version": "1.0.0",
+  "description": "Phoenix Education Institute Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4",
+    "selfsigned": "^5.5.0",
+    "uuid": "^13.0.0"
+  }
+}

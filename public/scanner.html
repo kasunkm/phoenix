@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>QR Scanner — Phoenix Education Institute</title>
+    <meta name="description" content="Scan your QR code to mark attendance at Phoenix Education Institute." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9e9eb8;
+            --text-muted: #6c6c85;
+            --accent-green: #00b894;
+            --accent-red: #d63031;
+            --accent-orange: #fdcb6e;
+            --border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        .scanner-header {
+            padding: 20px;
+            text-align: center;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .scanner-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .scanner-header .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #e84393);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-header .logo-icon .material-icons-round {
+            font-size: 20px;
+            color: white;
+        }
+
+        .scanner-header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-light), #e84393);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scanner-header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Subject selector */
+        .subject-selector {
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .subject-selector label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .subject-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1e1e35;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239e9eb8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+
+        .subject-selector select:focus {
+            border-color: rgba(108, 92, 231, 0.5);
+        }
+
+        .subject-selector select option {
+            background: var(--bg-card);
+        }
+
+        /* Scanner Area */
+        .scanner-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .scanner-frame {
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            box-shadow: 0 0 40px rgba(108, 92, 231, 0.1);
+        }
+
+        .scanner-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-frame canvas {
+            display: none;
+        }
+
+        /* Scanning animation */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--primary-light), var(--primary), transparent);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scanMove 2s ease-in-out infinite;
+            border-radius: 2px;
+            z-index: 5;
+        }
+
+        @keyframes scanMove {
+
+            0%,
+            100% {
+                top: 10%;
+            }
+
+            50% {
+                top: 88%;
+            }
+        }
+
+        /* Corner markers */
+        .scanner-frame::before,
+        .scanner-frame::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            z-index: 5;
+        }
+
+        .scanner-frame::before {
+            top: 12px;
+            left: 12px;
+            border-top: 3px solid var(--primary-light);
+            border-left: 3px solid var(--primary-light);
+            border-radius: 4px 0 0 0;
+        }
+
+        .scanner-frame::after {
+            top: 12px;
+            right: 12px;
+            border-top: 3px solid var(--primary-light);
+            border-right: 3px solid var(--primary-light);
+            border-radius: 0 4px 0 0;
+        }
+
+        .corner-bottom {
+            position: absolute;
+            bottom: 12px;
+            width: 30px;
+            height: 30px;
+            z-index: 5;
+        }
+
+        .corner-bottom-left {
+            left: 12px;
+            border-bottom: 3px solid var(--primary-light);
+            border-left: 3px solid var(--primary-light);
+            border-radius: 0 0 0 4px;
+        }
+
+        .corner-bottom-right {
+            right: 12px;
+            border-bottom: 3px solid var(--primary-light);
+            border-right: 3px solid var(--primary-light);
+            border-radius: 0 0 4px 0;
+        }
+
+        .scanner-hint {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .scanner-hint .material-icons-round {
+            vertical-align: middle;
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        /* Status display */
+        #scanner-status {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0;
+            z-index: 100;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .status-card {
+            margin: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .status-success {
+            background: rgba(0, 184, 148, 0.9);
+            box-shadow: 0 -4px 30px rgba(0, 184, 148, 0.3);
+        }
+
+        .status-warning {
+            background: rgba(253, 203, 110, 0.9);
+            color: #1a1a2e;
+            box-shadow: 0 -4px 30px rgba(253, 203, 110, 0.3);
+        }
+
+        .status-error {
+            background: rgba(214, 48, 49, 0.9);
+            box-shadow: 0 -4px 30px rgba(214, 48, 49, 0.3);
+        }
+
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .status-icon .material-icons-round {
+            font-size: 28px;
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-info .name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .status-info .message {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .status-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            opacity: 0.7;
+        }
+
+        .status-close:hover {
+            opacity: 1;
+        }
+
+        /* Start button */
+        .start-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary), #4a3cc9);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(108, 92, 231, 0.4);
+            transition: all 0.25s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(108, 92, 231, 0.5);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn .material-icons-round {
+            font-size: 24px;
+        }
+
+        /* Permission/Error state */
+        .scanner-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .scanner-placeholder .ph-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(108, 92, 231, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-placeholder .ph-icon .material-icons-round {
+            font-size: 40px;
+            color: var(--primary-light);
+        }
+
+        .scanner-placeholder h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .scanner-placeholder p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 300px;
+        }
+
+        /* Today's scans list */
+        .today-scans {
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .today-scans h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .today-scans h3 .material-icons-round {
+            font-size: 18px;
+            color: var(--primary-light);
+        }
+
+        .scan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .scan-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #1e1e35;
+            border-radius: 10px;
+        }
+
+        .scan-item .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #e84393);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .scan-item .info {
+            flex: 1;
+        }
+
+        .scan-item .name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .scan-item .time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .empty-scans {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="scanner-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <span class="material-icons-round">school</span>
+            </div>
+            <h1>Phoenix Institute</h1>
+        </div>
+        <p>Attendance QR Scanner</p>
+    </div>
+
+    <!-- Subject Selector -->
+    <div class="subject-selector">
+        <label for="scanner-subject">Select Subject for Attendance</label>
+        <select id="scanner-subject">
+            <option value="">— Choose Subject —</option>
+        </select>
+    </div>
+
+    <!-- Scanner Area -->
+    <div class="scanner-area" id="scanner-area">
+        <div class="scanner-placeholder" id="scanner-placeholder">
+            <div class="ph-icon">
+                <span class="material-icons-round">qr_code_scanner</span>
+            </div>
+            <h3>Ready to Scan</h3>
+            <p>Select a subject above, then tap the button to start scanning QR codes</p>
+            <button class="start-btn" onclick="startScanner()" id="start-scan-btn">
+                <span class="material-icons-round">photo_camera</span>
+                Start Camera
+            </button>
+        </div>
+
+        <div class="scanner-frame" id="scanner-frame" style="display:none">
+            <video id="scanner-video" playsinline autoplay muted></video>
+            <canvas id="scanner-canvas"></canvas>
+            <div class="scan-line"></div>
+            <div class="corner-bottom corner-bottom-left"></div>
+            <div class="corner-bottom corner-bottom-right"></div>
+        </div>
+        <p class="scanner-hint" id="scanner-hint" style="display:none">
+            <span class="material-icons-round">info</span>
+            Point your camera at a student's QR code
+        </p>
+    </div>
+
+    <!-- Status pop-up -->
+    <div id="scanner-status">
+        <div class="status-card" id="status-card">
+            <div class="status-icon">
+                <span class="material-icons-round" id="status-icon-inner">check_circle</span>
+            </div>
+            <div class="status-info">
+                <div class="name" id="status-name"></div>
+                <div class="message" id="status-message"></div>
+            </div>
+            <button class="status-close" onclick="hideStatus()">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Today's scans -->
+    <div class="today-scans" id="today-scans">
+        <h3>
+            <span class="material-icons-round">history</span>
+            Today's Scans
+        </h3>
+        <div class="scan-list" id="scan-list">
+            <div class="empty-scans" id="empty-scans">No scans yet today</div>
+        </div>
+    </div>
+
+    <!-- jsQR Library for QR code scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <script>
+        let videoStream = null;
+        let scanning = false;
+        let scanCooldown = false;
+
+        // Load subjects on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/subjects');
+                const subjects = await res.json();
+                const select = document.getElementById('scanner-subject');
+                subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Failed to load subjects:', err);
+            }
+
+            loadTodayScans();
+        });
+
+        async function startScanner() {
+            const subjectId = document.getElementById('scanner-subject').value;
+            if (!subjectId) {
+                alert('Please select a subject first!');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+
+                videoStream = stream;
+                const video = document.getElementById('scanner-video');
+                video.srcObject = stream;
+
+                document.getElementById('scanner-placeholder').style.display = 'none';
+                document.getElementById('scanner-frame').style.display = 'block';
+                document.getElementById('scanner-hint').style.display = 'block';
+
+                scanning = true;
+                requestAnimationFrame(scanFrame);
+            } catch (err) {
+                console.error('Camera error:', err.name, err.message);
+
+                let errorTitle = 'Camera Access Denied';
+                let errorMsg = 'Please allow camera access in your browser settings to scan QR codes.';
+
+                if (!window.isSecureContext) {
+                    errorTitle = 'Secure Connection Required';
+                    errorMsg = 'Camera access requires HTTPS. Please open this page using https:// instead of http://. Use the URL: https://' + location.hostname + ':3443/scanner.html';
+                } else if (err.name === 'NotAllowedError') {
+                    errorTitle = 'Camera Permission Denied';
+                    errorMsg = 'Please allow camera access. On your phone: go to Settings → Site Settings → Camera → allow this site. Then tap Try Again.';
+                } else if (err.name === 'NotFoundError') {
+                    errorTitle = 'No Camera Found';
+                    errorMsg = 'No camera was detected on this device.';
+                } else if (err.name === 'NotReadableError') {
+                    errorTitle = 'Camera In Use';
+                    errorMsg = 'The camera is being used by another app. Close other apps and try again.';
+                } else if (err.name === 'OverconstrainedError') {
+                    errorTitle = 'Camera Error';
+                    errorMsg = 'Could not start camera with requested settings. Trying again...';
+                    // Retry without facing mode constraint
+                    try {
+                        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        videoStream = fallbackStream;
+                        const video = document.getElementById('scanner-video');
+                        video.srcObject = fallbackStream;
+                        document.getElementById('scanner-placeholder').style.display = 'none';
+                        document.getElementById('scanner-frame').style.display = 'block';
+                        document.getElementById('scanner-hint').style.display = 'block';
+                        scanning = true;
+                        requestAnimationFrame(scanFrame);
+                        return;
+                    } catch (e2) {
+                        errorMsg = 'Could not access any camera on this device.';
+                    }
+                }
+
+                document.getElementById('scanner-placeholder').innerHTML = `
+          <div class="ph-icon">
+            <span class="material-icons-round" style="color:var(--accent-red)">videocam_off</span>
+          </div>
+          <h3>${errorTitle}</h3>
+          <p>${errorMsg}</p>
+          <button class="start-btn" onclick="startScanner()">
+            <span class="material-icons-round">refresh</span>
+            Try Again
+          </button>
+        `;
+            }
+        }
+
+        function scanFrame() {
+            if (!scanning) return;
+
+            const video = document.getElementById('scanner-video');
+            const canvas = document.getElementById('scanner-canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                const code = jsQR(imageData.data, canvas.width, canvas.height, {
+                    inversionAttempts: 'dontInvert'
+                });
+
+                if (code && !scanCooldown) {
+                    handleQRCode(code.data);
+                }
+            }
+
+            requestAnimationFrame(scanFrame);
+        }
+
+        async function handleQRCode(data) {
+            scanCooldown = true;
+
+            try {
+                const qrData = JSON.parse(data);
+                const subjectId = document.getElementById('scanner-subject').value;
+
+                if (!qrData.uid) {
+                    showStatus('Invalid QR Code', 'This QR code is not a valid student code', 'error');
+                    setTimeout(() => { scanCooldown = false; }, 3000);
+                    return;
+                }
+
+                const res = await fetch('/api/attendance/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_uid: qrData.uid, subject_id: parseInt(subjectId) })
+                });
+
+                const result = await res.json();
+
+                if (result.already_scanned) {
+                    showStatus(
+                        `${result.student.first_name} ${result.student.last_name}`,
+                        result.message,
+                        'warning'
+                    );
+                } else if (result.not_enrolled) {
+                    showStatus(
+                        `${result.student.first_name} ${result.student.last_name}`,
+                        result.message,
+                        'error'
+                    );
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                } else if (result.success) {
+                    showStatus(
+                        `${result.student.first_name} ${result.student.last_name}`,
+                        result.message,
+                        'success'
+                    );
+                    // Vibrate on success
+                    if (navigator.vibrate) navigator.vibrate(200);
+                    loadTodayScans();
+                } else {
+                    showStatus('Error', result.message || 'Failed to record attendance', 'error');
+                }
+            } catch (err) {
+                showStatus('Error', 'Invalid QR code format', 'error');
+            }
+
+            setTimeout(() => { scanCooldown = false; }, 3000);
+        }
+
+        function showStatus(name, message, type) {
+            const statusEl = document.getElementById('scanner-status');
+            const card = document.getElementById('status-card');
+            const iconEl = document.getElementById('status-icon-inner');
+
+            document.getElementById('status-name').textContent = name;
+            document.getElementById('status-message').textContent = message;
+
+            card.className = `status-card status-${type}`;
+            iconEl.textContent = type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : 'error';
+
+            statusEl.style.display = 'block';
+            statusEl.style.animation = 'none';
+            statusEl.offsetHeight; // trigger reflow
+            statusEl.style.animation = 'slideUp 0.4s ease';
+
+            // Auto-hide after 4 seconds
+            clearTimeout(window._statusTimeout);
+            window._statusTimeout = setTimeout(hideStatus, 4000);
+        }
+
+        function hideStatus() {
+            document.getElementById('scanner-status').style.display = 'none';
+        }
+
+        async function loadTodayScans() {
+            const subjectId = document.getElementById('scanner-subject').value;
+            const params = subjectId ? `?subject_id=${subjectId}` : '';
+
+            try {
+                const res = await fetch(`/api/attendance/today${params}`);
+                const scans = await res.json();
+
+                const list = document.getElementById('scan-list');
+                const empty = document.getElementById('empty-scans');
+
+                if (scans.length === 0) {
+                    list.innerHTML = '';
+                    list.appendChild(empty);
+                    empty.style.display = 'block';
+                } else {
+                    list.innerHTML = scans.map(s => `
+            <div class="scan-item">
+              <div class="avatar">${s.first_name[0]}${s.last_name[0]}</div>
+              <div class="info">
+                <div class="name">${s.first_name} ${s.last_name}</div>
+                <div class="time">${s.subject_name} • ${s.scan_time}</div>
+              </div>
+            </div>
+          `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to load today scans:', err);
+            }
+        }
+
+        // Reload scans when subject changes
+        document.getElementById('scanner-subject').addEventListener('change', () => {
+            loadTodayScans();
+            // Reset scanner if running
+            if (scanning) {
+                // Keep scanner running with new subject
+            }
+        });
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            scanning = false;
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phoenix Education Institute — Management System</title>
+  <meta name="description"
+    content="Institute management system for Phoenix Education Institute. Manage students, attendance, payments and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">
+        <span class="material-icons-round">school</span>
+      </div>
+      <div class="logo-text">
+        <h1>Phoenix</h1>
+        <p>Education Institute</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <span class="material-icons-round">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="students" id="nav-students">
+        <span class="material-icons-round">people</span>
+        <span>Students</span>
+      </a>
+      <a href="#" class="nav-item" data-page="attendance" id="nav-attendance">
+        <span class="material-icons-round">fact_check</span>
+        <span>Attendance</span>
+      </a>
+      <a href="#" class="nav-item" data-page="payments" id="nav-payments">
+        <span class="material-icons-round">payments</span>
+        <span>Payments</span>
+      </a>
+      <a href="#" class="nav-item" data-page="income" id="nav-income">
+        <span class="material-icons-round">account_balance</span>
+        <span>Income</span>
+      </a>
+      <a href="#" class="nav-item" data-page="qrcodes" id="nav-qrcodes">
+        <span class="material-icons-round">qr_code_2</span>
+        <span>QR Codes</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/scanner.html" target="_blank" class="scanner-link" id="open-scanner-link">
+        <span class="material-icons-round">qr_code_scanner</span>
+        <span>Open Scanner</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header" id="mobile-header">
+    <button class="menu-toggle" id="menu-toggle">
+      <span class="material-icons-round">menu</span>
+    </button>
+    <h1>Phoenix Institute</h1>
+    <a href="/scanner.html" target="_blank" class="mobile-scanner-btn">
+      <span class="material-icons-round">qr_code_scanner</span>
+    </a>
+  </header>
+
+  <!-- Overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content">
+
+    <!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p class="page-subtitle">Overview of your institute</p>
+        </div>
+        <div class="header-date" id="header-date"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card stat-blue" id="stat-total-students">
+          <div class="stat-icon"><span class="material-icons-round">people</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-students-count">0</span>
+            <span class="stat-label">Total Students</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green" id="stat-today-attendance">
+          <div class="stat-icon"><span class="material-icons-round">how_to_reg</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-attendance-count">0</span>
+            <span class="stat-label">Today's Attendance</span>
+          </div>
+        </div>
+        <div class="stat-card stat-purple" id="stat-enrollments">
+          <div class="stat-icon"><span class="material-icons-round">class</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-enrollments-count">0</span>
+            <span class="stat-label">Active Enrollments</span>
+          </div>
+        </div>
+        <div class="stat-card stat-orange" id="stat-unpaid">
+          <div class="stat-icon"><span class="material-icons-round">warning</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-unpaid-count">0</span>
+            <span class="stat-label">Unpaid This Month</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card" id="recent-attendance-card">
+          <div class="card-header">
+            <h3><span class="material-icons-round">schedule</span> Recent Attendance</h3>
+          </div>
+          <div class="card-body">
+            <div id="recent-attendance-list" class="attendance-feed"></div>
+            <p class="empty-state" id="no-recent-attendance" style="display:none">No attendance records today</p>
+          </div>
+        </div>
+        <div class="card" id="quick-actions-card">
+          <div class="card-header">
+            <h3><span class="material-icons-round">bolt</span> Quick Actions</h3>
+          </div>
+          <div class="card-body">
+            <button class="action-btn" onclick="navigateTo('students'); openAddStudentModal()" id="quick-add-student">
+              <span class="material-icons-round">person_add</span>
+              Add New Student
+            </button>
+            <a href="/scanner.html" target="_blank" class="action-btn" id="quick-open-scanner">
+              <span class="material-icons-round">qr_code_scanner</span>
+              Open QR Scanner
+            </a>
+            <button class="action-btn" onclick="navigateTo('payments')" id="quick-manage-payments">
+              <span class="material-icons-round">receipt_long</span>
+              Manage Payments
+            </button>
+            <button class="action-btn" onclick="navigateTo('qrcodes')" id="quick-generate-qr">
+              <span class="material-icons-round">qr_code_2</span>
+              Generate QR Codes
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ STUDENTS PAGE ═══════════════ -->
+    <section class="page" id="page-students">
+      <div class="page-header">
+        <div>
+          <h2>Students</h2>
+          <p class="page-subtitle">Manage student records</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddStudentModal()" id="add-student-btn">
+          <span class="material-icons-round">person_add</span>
+          Add Student
+        </button>
+      </div>
+
+      <div class="filters-bar" id="students-filters">
+        <div class="filter-group">
+          <input type="text" id="student-search" class="form-input" placeholder="Search students..." />
+        </div>
+        <div class="filter-group">
+          <select id="filter-subject" class="form-select">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="filter-grade" class="form-select">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="students-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>School</th>
+              <th>Subjects</th>
+              <th>Grades</th>
+              <th>Parent Contact</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody"></tbody>
+        </table>
+        <p class="empty-state" id="no-students" style="display:none">No students found. Click "Add Student" to get
+          started.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════ ATTENDANCE PAGE ═══════════════ -->
+    <section class="page" id="page-attendance">
+      <div class="page-header">
+        <div>
+          <h2>Attendance</h2>
+          <p class="page-subtitle">Track and view attendance records</p>
+        </div>
+      </div>
+
+      <div class="filters-bar" id="attendance-filters">
+        <div class="filter-group">
+          <label>Date</label>
+          <input type="date" id="attendance-date" class="form-input" />
+        </div>
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="attendance-subject" class="form-select">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="attendance-grade" class="form-select">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" onclick="loadAttendance()" id="attendance-filter-btn">
+          <span class="material-icons-round">filter_list</span>
+          Filter
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="attendance-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="attendance-tbody"></tbody>
+        </table>
+        <p class="empty-state" id="no-attendance" style="display:none">No attendance records found for the selected
+          filters.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════ PAYMENTS PAGE ═══════════════ -->
+    <section class="page" id="page-payments">
+      <div class="page-header">
+        <div>
+          <h2>Payments</h2>
+          <p class="page-subtitle">Track monthly class fee payments</p>
+        </div>
+      </div>
+
+      <div class="filters-bar" id="payments-filters">
+        <div class="filter-group">
+          <label>Month</label>
+          <select id="payment-month" class="form-select">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Year</label>
+          <input type="number" id="payment-year" class="form-input" value="2026" min="2020" max="2050" />
+        </div>
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="payment-subject" class="form-select">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Grade</label>
+          <select id="payment-grade" class="form-select">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="payment-status" class="form-select">
+            <option value="">All</option>
+            <option value="unpaid">Unpaid Only</option>
+            <option value="paid">Paid Only</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" onclick="loadPaymentReport()" id="payment-filter-btn">
+          <span class="material-icons-round">filter_list</span>
+          View Report
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="payments-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Paid Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody"></tbody>
+        </table>
+        <p class="empty-state" id="no-payments" style="display:none">No records found. Select filters and click "View
+          Report".</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════ INCOME PAGE ═══════════════ -->
+    <section class="page" id="page-income">
+      <div class="page-header">
+        <div>
+          <h2>Income Report</h2>
+          <p class="page-subtitle">Track monthly fee collections</p>
+        </div>
+      </div>
+
+      <div class="filters-bar" id="income-filters">
+        <div class="filter-group">
+          <label>Year</label>
+          <input type="number" id="income-year" class="form-input" value="2026" min="2020" max="2050" />
+        </div>
+        <button class="btn btn-secondary" onclick="loadIncomeReport()" id="income-filter-btn">
+          <span class="material-icons-round">filter_list</span>
+          View Report
+        </button>
+      </div>
+
+      <!-- Yearly summary -->
+      <div class="income-summary" id="income-summary">
+        <div class="stat-card stat-green">
+          <div class="stat-icon"><span class="material-icons-round">account_balance_wallet</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="income-yearly-total">Rs. 0</span>
+            <span class="stat-label">Total Income</span>
+          </div>
+        </div>
+        <div class="stat-card stat-blue">
+          <div class="stat-icon"><span class="material-icons-round">receipt</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="income-total-payments">0</span>
+            <span class="stat-label">Total Payments</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly chart -->
+      <div class="card" id="income-chart-card">
+        <div class="card-header">
+          <h3><span class="material-icons-round">bar_chart</span> Monthly Income</h3>
+        </div>
+        <div class="card-body">
+          <div class="income-chart" id="income-chart"></div>
+        </div>
+      </div>
+
+      <!-- Subject breakdown -->
+      <div class="card" id="income-breakdown-card">
+        <div class="card-header">
+          <h3><span class="material-icons-round">pie_chart</span> Subject-wise Breakdown</h3>
+        </div>
+        <div class="card-body">
+          <div id="income-breakdown"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ QR CODES PAGE ═══════════════ -->
+    <section class="page" id="page-qrcodes">
+      <div class="page-header">
+        <div>
+          <h2>QR Codes</h2>
+          <p class="page-subtitle">Generate and manage student QR codes</p>
+        </div>
+      </div>
+
+      <div class="filters-bar">
+        <div class="filter-group">
+          <select id="qr-subject" class="form-select">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="qr-grade" class="form-select">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" onclick="loadQRCodes()" id="qr-filter-btn">
+          <span class="material-icons-round">filter_list</span>
+          Filter
+        </button>
+      </div>
+
+      <div class="qr-grid" id="qr-grid"></div>
+      <p class="empty-state" id="no-qr" style="display:none">No students found. Add students first to generate QR codes.
+      </p>
+    </section>
+  </main>
+
+  <!-- ═══════════════ ADD/EDIT STUDENT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="student-modal-overlay">
+    <div class="modal" id="student-modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Add New Student</h3>
+        <button class="modal-close" onclick="closeStudentModal()" id="modal-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <form id="student-form" onsubmit="handleStudentSubmit(event)">
+        <input type="hidden" id="edit-student-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="inp-first-name">First Name *</label>
+            <input type="text" id="inp-first-name" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label for="inp-last-name">Last Name *</label>
+            <input type="text" id="inp-last-name" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label for="inp-school">School</label>
+            <input type="text" id="inp-school" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label for="inp-birthdate">Date of Birth</label>
+            <input type="date" id="inp-birthdate" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label for="inp-parent-name">Parent's Name</label>
+            <input type="text" id="inp-parent-name" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label for="inp-parent-contact">Parent's Contact</label>
+            <input type="tel" id="inp-parent-contact" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Class Enrollment</h4>
+          <div id="class-entries">
+            <div class="class-entry" data-index="0">
+              <select class="form-select class-subject" data-index="0" id="class-subject-0">
+                <option value="">Select Subject</option>
+              </select>
+              <select class="form-select class-grade" data-index="0" id="class-grade-0">
+                <option value="">Select Grade</option>
+              </select>
+              <button type="button" class="btn-icon btn-remove-class" onclick="removeClassEntry(this)"
+                id="remove-class-0" style="visibility:hidden">
+                <span class="material-icons-round">remove_circle</span>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost" onclick="addClassEntry()" id="add-class-btn">
+            <span class="material-icons-round">add</span> Add Another Class
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeStudentModal()"
+            id="modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="modal-submit-btn">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STUDENT DETAIL MODAL ═══════════════ -->
+  <div class="modal-overlay" id="detail-modal-overlay">
+    <div class="modal modal-large" id="detail-modal">
+      <div class="modal-header">
+        <h3 id="detail-modal-title">Student Details</h3>
+        <button class="modal-close" onclick="closeDetailModal()" id="detail-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="detail-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="payment-modal-overlay">
+    <div class="modal" id="payment-modal">
+      <div class="modal-header">
+        <h3>Record Payment</h3>
+        <button class="modal-close" onclick="closePaymentModal()" id="payment-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <form id="payment-form" onsubmit="handlePaymentSubmit(event)">
+        <input type="hidden" id="pay-student-id" />
+        <input type="hidden" id="pay-subject-id" />
+        <input type="hidden" id="pay-month" />
+        <input type="hidden" id="pay-year" />
+        <div class="form-group">
+          <label>Student</label>
+          <p id="pay-student-name" class="form-static"></p>
+        </div>
+        <div class="form-group">
+          <label for="pay-amount">Amount (Rs.)</label>
+          <input type="number" id="pay-amount" class="form-input" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label for="pay-notes">Notes</label>
+          <input type="text" id="pay-notes" class="form-input" placeholder="Optional notes" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closePaymentModal()"
+            id="payment-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="payment-submit-btn">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
